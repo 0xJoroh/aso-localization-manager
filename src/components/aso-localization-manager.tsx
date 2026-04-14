@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import {
   AlertTriangle,
   Check,
@@ -12,8 +13,14 @@ import {
 
 import { BrainstormTagInput } from "@/components/brainstorm-tag-input";
 import { DataTransferActions } from "@/components/data-transfer-actions";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   EDITABLE_FIELDS,
@@ -74,6 +81,37 @@ function KeywordBadge({
   );
 }
 
+function EditorFieldCard({
+  title,
+  description,
+  children,
+  footer,
+  className,
+  contentClassName,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+  footer?: ReactNode;
+  className?: string;
+  contentClassName?: string;
+}) {
+  return (
+    <Card className={cn("gap-0", className)}>
+      <CardHeader className="gap-1.5 pb-0">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardDescription className="text-xs leading-5">
+          {description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className={cn("space-y-3 pt-4", contentClassName)}>
+        {children}
+        {footer}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function AsoLocalizationManager() {
   const {
     activeLocalizationId,
@@ -110,159 +148,238 @@ export function AsoLocalizationManager() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground lg:h-screen lg:overflow-hidden">
-      <div className="mx-auto max-w-[1500px] lg:h-full">
-        <div
-          className={cn(
-            "grid min-h-screen transition-[grid-template-columns] duration-200 ease-out lg:h-full lg:min-h-0",
-            sidebarCollapsed
-              ? "lg:grid-cols-[72px_minmax(0,1fr)]"
-              : "lg:grid-cols-[286px_minmax(0,1fr)]",
-          )}
-        >
-          <aside className="border-border/80 lg:sticky lg:top-0 lg:h-screen lg:border-r">
-            <div className="flex h-full min-h-screen flex-col py-4 lg:h-screen lg:min-h-0">
+    <main className="min-h-screen w-full bg-background text-foreground md:h-screen md:overflow-hidden">
+      <div
+        className={cn(
+          "relative w-full md:grid md:min-h-0 md:h-full md:transition-[grid-template-columns] md:duration-200 md:ease-out",
+          sidebarCollapsed
+            ? "md:grid-cols-[72px_minmax(0,1fr)]"
+            : "md:grid-cols-[286px_minmax(0,1fr)]",
+        )}
+      >
+        <input
+          id="mobile-sidebar-toggle"
+          type="checkbox"
+          className="peer/mobile-sidebar absolute sr-only md:hidden"
+          aria-hidden="true"
+        />
+
+        <label
+          htmlFor="mobile-sidebar-toggle"
+          className="fixed inset-0 z-30 hidden bg-black/55 backdrop-blur-[1px] peer-checked/mobile-sidebar:block md:hidden"
+          aria-label="Close sidebar"
+        />
+
+        <aside className="fixed inset-y-0 left-0 z-40 w-[min(20rem,82vw)] max-w-full -translate-x-full border-r border-border/80 bg-background shadow-2xl transition-transform duration-200 ease-out peer-checked/mobile-sidebar:translate-x-0 md:sticky md:top-0 md:z-auto md:w-auto md:max-w-none md:translate-x-0 md:shadow-none">
+          <div className="flex h-full min-h-full flex-col py-4 md:h-screen md:min-h-0">
+            <div
+              className={cn(
+                "flex items-center gap-2",
+                sidebarCollapsed
+                  ? "px-4 md:justify-center md:px-2"
+                  : "justify-between px-4",
+              )}
+            >
               <div
                 className={cn(
-                  "flex items-center gap-2",
-                  sidebarCollapsed ? "justify-center px-2" : "justify-between px-4",
+                  "relative flex-1",
+                  sidebarCollapsed && "md:hidden",
                 )}
               >
-                {!sidebarCollapsed ? (
-                  <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="localization-search"
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      placeholder="Search localizations"
-                      className="h-9 rounded-md border-border bg-background pr-9 pl-9 shadow-none"
-                    />
-                    {searchQuery ? (
-                      <button
-                        type="button"
-                        onClick={clearSearchQuery}
-                        className="absolute top-1/2 right-2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                        aria-label="Clear search"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    ) : null}
-                  </div>
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="localization-search"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search localizations"
+                  className="h-9 rounded-md border-border bg-background pr-9 pl-9 shadow-none"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={clearSearchQuery}
+                    className="absolute top-1/2 right-2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    aria-label="Clear search"
+                  >
+                    <X className="size-3.5" />
+                  </button>
                 ) : null}
-
-                <button
-                  type="button"
-                  onClick={toggleSidebarCollapsed}
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                  aria-label={
-                    sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
-                  }
-                >
-                  {sidebarCollapsed ? (
-                    <PanelLeftOpen className="size-4" />
-                  ) : (
-                    <PanelLeftClose className="size-4" />
-                  )}
-                </button>
               </div>
 
-              <div className="mt-4 min-h-0 flex-1 overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full overflow-x-hidden overflow-y-auto",
-                    sidebarCollapsed ? "px-2" : "pl-4 pr-1",
-                  )}
-                >
-                  <div className="space-y-1">
-                    {visibleLocalizations.length === 0 ? (
-                      <div
+              <label
+                htmlFor="mobile-sidebar-toggle"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:hidden"
+                aria-label="Close sidebar"
+              >
+                <X className="size-4" />
+              </label>
+
+              <button
+                type="button"
+                onClick={toggleSidebarCollapsed}
+                className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground md:inline-flex"
+                aria-label={
+                  sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+                }
+              >
+                {sidebarCollapsed ? (
+                  <PanelLeftOpen className="size-4" />
+                ) : (
+                  <PanelLeftClose className="size-4" />
+                )}
+              </button>
+            </div>
+
+            <div className="mt-4 min-h-0 flex-1 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full overflow-x-hidden overflow-y-auto",
+                  sidebarCollapsed ? "pl-4 pr-1 md:px-2" : "pl-4 pr-1",
+                )}
+              >
+                <div className="space-y-1">
+                  {visibleLocalizations.length === 0 ? (
+                    <div
+                      className={cn(
+                        "py-8 text-sm text-muted-foreground",
+                        sidebarCollapsed && "md:px-2 md:text-center md:text-xs",
+                      )}
+                    >
+                      No matches
+                    </div>
+                  ) : null}
+
+                  {visibleLocalizations.map((localization) => {
+                    const isActive = localization.id === activeLocalizationId;
+                    const status = getLocalizationStatusDetails(localization);
+                    const flag = getLocalizationFlag(localization.name);
+
+                    return (
+                      <button
+                        key={localization.id}
+                        type="button"
+                        onClick={() => handleSelectLocalization(localization.id)}
                         className={cn(
-                          "py-8 text-sm text-muted-foreground",
-                          sidebarCollapsed && "px-2 text-center text-xs",
+                          "relative flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors",
+                          sidebarCollapsed && "md:justify-center md:px-0 md:py-2.5",
+                          isActive
+                            ? "bg-accent text-accent-foreground"
+                            : "text-foreground hover:bg-muted",
                         )}
+                        title={sidebarCollapsed ? localization.name : undefined}
                       >
-                        No matches
-                      </div>
-                    ) : null}
-
-                    {visibleLocalizations.map((localization) => {
-                      const isActive = localization.id === activeLocalizationId;
-                      const status = getLocalizationStatusDetails(localization);
-                      const flag = getLocalizationFlag(localization.name);
-
-                      return (
-                        <button
-                          key={localization.id}
-                          type="button"
-                          onClick={() => handleSelectLocalization(localization.id)}
+                        <span
                           className={cn(
-                            "relative flex w-full items-center rounded-md text-left text-sm transition-colors",
-                            sidebarCollapsed
-                              ? "justify-center px-0 py-2.5"
-                              : "justify-between px-3 py-2",
-                            isActive
-                              ? "bg-accent text-accent-foreground"
-                              : "text-foreground hover:bg-muted",
+                            "flex min-w-0 items-center gap-2",
+                            sidebarCollapsed && "md:justify-center",
                           )}
-                          title={
-                            sidebarCollapsed ? localization.name : undefined
-                          }
                         >
                           <span
+                            aria-hidden="true"
+                            className="shrink-0 text-base"
+                          >
+                            {flag}
+                          </span>
+                          <span
                             className={cn(
-                              "flex min-w-0 items-center",
-                              sidebarCollapsed ? "justify-center" : "gap-2",
+                              "truncate",
+                              sidebarCollapsed && "md:hidden",
                             )}
                           >
-                            <span
-                              aria-hidden="true"
-                              className="shrink-0 text-base"
-                            >
-                              {flag}
-                            </span>
-                            {!sidebarCollapsed ? (
-                              <span className="truncate">
-                                {localization.name}
-                              </span>
-                            ) : null}
+                            {localization.name}
                           </span>
-                          {!sidebarCollapsed && status.isComplete ? (
-                            <Check className="ml-3 size-4 shrink-0 text-emerald-500" />
-                          ) : null}
-                          {!sidebarCollapsed && status.hasErrors ? (
-                            <AlertTriangle className="ml-3 size-4 shrink-0 text-red-500" />
-                          ) : null}
-                          {!sidebarCollapsed && status.isIncomplete ? (
-                            <Clock3 className="ml-3 size-4 shrink-0 text-amber-500" />
-                          ) : null}
-                          {sidebarCollapsed && status.isComplete ? (
-                            <span className="absolute top-1 right-1 rounded-full bg-emerald-500/15 p-0.5 text-emerald-400">
-                              <Check className="size-3" />
-                            </span>
-                          ) : null}
-                          {sidebarCollapsed && status.hasErrors ? (
-                            <span className="absolute top-1 right-1 rounded-full bg-red-500/15 p-0.5 text-red-500">
-                              <AlertTriangle className="size-3" />
-                            </span>
-                          ) : null}
-                          {sidebarCollapsed && status.isIncomplete ? (
-                            <span className="absolute top-1 right-1 rounded-full bg-amber-500/15 p-0.5 text-amber-500">
-                              <Clock3 className="size-3" />
-                            </span>
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
+                        </span>
+                        {status.isComplete ? (
+                          <Check
+                            className={cn(
+                              "ml-3 size-4 shrink-0 text-emerald-500",
+                              sidebarCollapsed && "md:hidden",
+                            )}
+                          />
+                        ) : null}
+                        {status.hasErrors ? (
+                          <AlertTriangle
+                            className={cn(
+                              "ml-3 size-4 shrink-0 text-red-500",
+                              sidebarCollapsed && "md:hidden",
+                            )}
+                          />
+                        ) : null}
+                        {status.isIncomplete ? (
+                          <Clock3
+                            className={cn(
+                              "ml-3 size-4 shrink-0 text-amber-500",
+                              sidebarCollapsed && "md:hidden",
+                            )}
+                          />
+                        ) : null}
+                        {status.isComplete ? (
+                          <span
+                            className={cn(
+                              "absolute top-1 right-1 hidden rounded-full bg-emerald-500/15 p-0.5 text-emerald-400",
+                              sidebarCollapsed && "md:block",
+                            )}
+                          >
+                            <Check className="size-3" />
+                          </span>
+                        ) : null}
+                        {status.hasErrors ? (
+                          <span
+                            className={cn(
+                              "absolute top-1 right-1 hidden rounded-full bg-red-500/15 p-0.5 text-red-500",
+                              sidebarCollapsed && "md:block",
+                            )}
+                          >
+                            <AlertTriangle className="size-3" />
+                          </span>
+                        ) : null}
+                        {status.isIncomplete ? (
+                          <span
+                            className={cn(
+                              "absolute top-1 right-1 hidden rounded-full bg-amber-500/15 p-0.5 text-amber-500",
+                              sidebarCollapsed && "md:block",
+                            )}
+                          >
+                            <Clock3 className="size-3" />
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          </aside>
+          </div>
+        </aside>
 
-          <section className="min-h-0 py-6 lg:overflow-y-auto lg:pl-8">
+        <section className="min-h-0 px-4 py-6 sm:px-6 md:min-w-0 md:overflow-y-auto md:px-6 lg:px-8">
             {selectedLocalization ? (
-              <div className="space-y-6 pr-1 lg:pr-6">
+              <div className="mx-auto w-full max-w-7xl space-y-6">
+                <div className="sticky top-0 z-20 -mx-4 -mt-6 border-b border-border/70 bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 md:hidden">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <label
+                        htmlFor="mobile-sidebar-toggle"
+                        className="inline-flex h-10 shrink-0 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                      >
+                        <PanelLeftOpen className="size-4" />
+                        Localizations
+                      </label>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {selectedLocalization.name}
+                        </p>
+                      </div>
+                    </div>
+                    <DataTransferActions
+                      compact
+                      importIconOnly
+                      showDescription={false}
+                      className="shrink-0"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="text-xl">
@@ -289,18 +406,21 @@ export function AsoLocalizationManager() {
                     ) : null}
                   </div>
 
-                  <DataTransferActions />
+                  <DataTransferActions
+                    className="hidden md:flex"
+                    importIconOnly
+                  />
                 </div>
 
                 {!storageNoticeDismissed ? (
-                  <div className="rounded-2xl border border-amber-300/40 bg-amber-50 px-4 py-4 text-sm text-amber-950">
+                  <div className="rounded-2xl border border-orange-400/40 bg-orange-500/12 px-4 py-4 text-sm text-orange-100">
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 rounded-full bg-amber-100 p-1.5 text-amber-700">
+                      <div className="mt-0.5 rounded-full bg-orange-400/20 p-1.5 text-orange-300">
                         <AlertTriangle className="size-4" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium">Your data stays in this browser.</p>
-                        <p className="mt-1 text-amber-900/75">
+                        <p className="mt-1 text-orange-200/85">
                           Refreshing is safe, but switching browsers or devices
                           requires using the export and import actions in the top
                           right corner.
@@ -309,7 +429,7 @@ export function AsoLocalizationManager() {
                       <button
                         type="button"
                         onClick={dismissStorageNotice}
-                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-amber-700/70 transition-colors hover:bg-amber-100 hover:text-amber-900"
+                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-orange-200/75 transition-colors hover:bg-orange-400/20 hover:text-orange-100"
                         aria-label="Dismiss storage notice"
                       >
                         <X className="size-4" />
@@ -319,7 +439,7 @@ export function AsoLocalizationManager() {
                 ) : null}
 
                 <div className="space-y-6">
-                  <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_360px]">
+                  <div className="grid items-stretch gap-4 min-[500px]:grid-cols-2 md:gap-5 lg:gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                     <div className="space-y-5">
                       {EDITABLE_FIELDS.filter(
                         (field) => field !== "description",
@@ -328,94 +448,77 @@ export function AsoLocalizationManager() {
                         const fieldError = getFieldError(field, value);
 
                         return (
-                          <div
+                          <EditorFieldCard
                             key={field}
-                            className="rounded-xl border border-border bg-background"
+                            title={FIELD_LABELS[field]}
+                            description={fieldDescriptions[field]}
                           >
-                            <div className="space-y-3 p-4 sm:p-5">
-                              <div className="space-y-1">
-                                <Label
-                                  htmlFor={`${field}-${selectedLocalization.id}`}
-                                  className="text-sm font-medium"
-                                >
-                                  {FIELD_LABELS[field]}
-                                </Label>
-                                <p className="text-xs leading-5 text-muted-foreground">
-                                  {fieldDescriptions[field]}
+                            {field === "keywords" ? (
+                              <Textarea
+                                id={`${field}-${selectedLocalization.id}`}
+                                rows={3}
+                                placeholder={fieldPlaceholders[field]}
+                                aria-invalid={fieldError ? true : undefined}
+                                value={value}
+                                onChange={(event) =>
+                                  updateField(
+                                    selectedLocalization.id,
+                                    field,
+                                    event.target.value,
+                                  )
+                                }
+                                className="rounded-md border-border bg-background shadow-none"
+                              />
+                            ) : (
+                              <Input
+                                id={`${field}-${selectedLocalization.id}`}
+                                placeholder={fieldPlaceholders[field]}
+                                aria-invalid={fieldError ? true : undefined}
+                                value={value}
+                                onChange={(event) =>
+                                  updateField(
+                                    selectedLocalization.id,
+                                    field,
+                                    event.target.value,
+                                  )
+                                }
+                                className="h-10 rounded-md border-border bg-background shadow-none"
+                              />
+                            )}
+
+                            <div className="flex items-start justify-between gap-4">
+                              {fieldError ? (
+                                <p className="text-sm text-red-600">
+                                  {fieldError}
                                 </p>
-                              </div>
-
-                              {field === "keywords" ? (
-                                <Textarea
-                                  id={`${field}-${selectedLocalization.id}`}
-                                  rows={3}
-                                  placeholder={fieldPlaceholders[field]}
-                                  aria-invalid={fieldError ? true : undefined}
-                                  value={value}
-                                  onChange={(event) =>
-                                    updateField(
-                                      selectedLocalization.id,
-                                      field,
-                                      event.target.value,
-                                    )
-                                  }
-                                  className="rounded-md border-border bg-background shadow-none"
-                                />
                               ) : (
-                                <Input
-                                  id={`${field}-${selectedLocalization.id}`}
-                                  placeholder={fieldPlaceholders[field]}
-                                  aria-invalid={fieldError ? true : undefined}
-                                  value={value}
-                                  onChange={(event) =>
-                                    updateField(
-                                      selectedLocalization.id,
-                                      field,
-                                      event.target.value,
-                                    )
-                                  }
-                                  className="h-10 rounded-md border-border bg-background shadow-none"
-                                />
+                                <span className="block min-h-5" />
                               )}
-
-                              <div className="flex items-start justify-between gap-4">
-                                {fieldError ? (
-                                  <p className="text-sm text-red-600">
-                                    {fieldError}
-                                  </p>
-                                ) : (
-                                  <span />
+                              <div
+                                className={cn(
+                                  "shrink-0 text-xs font-medium",
+                                  fieldError
+                                    ? "text-red-600"
+                                    : "text-muted-foreground",
                                 )}
-                                <div
-                                  className={cn(
-                                    "shrink-0 text-xs font-medium",
-                                    fieldError
-                                      ? "text-red-600"
-                                      : "text-muted-foreground",
-                                  )}
-                                >
-                                  {formatCounter(field, value)}
-                                </div>
+                              >
+                                {formatCounter(field, value)}
                               </div>
                             </div>
-                          </div>
+                          </EditorFieldCard>
                         );
                       })}
                     </div>
 
-                    <div className="flex lg:w-[340px] xl:w-[360px]">
-                      <div className="flex min-h-full w-full flex-col lg:sticky lg:top-6">
-                        <div className="flex min-h-full flex-col rounded-xl border border-border bg-background p-4 sm:p-5">
-                          <div className="space-y-1">
-                            <Label
-                              htmlFor={`brainstorm-${selectedLocalization.id}`}
-                              className="text-sm font-medium"
-                            >
-                              Brainstorm keywords
-                            </Label>
-                          </div>
-
-                          <div className="mt-4 flex flex-1">
+                    <div className="flex min-w-0">
+                      <div className="flex min-h-full w-full flex-col min-[500px]:sticky min-[500px]:top-6">
+                        <EditorFieldCard
+                          title="Brainstorm keywords"
+                          description="Draft ideas here, then move the best ones into title, subtitle, and keywords."
+                          className="min-h-full"
+                          contentClassName="flex min-h-0 flex-1 flex-col gap-3 pt-3"
+                        >
+                          <div className="flex min-h-0 flex-1">
                             <BrainstormTagInput
                               key={selectedLocalization.id}
                               inputId={`brainstorm-${selectedLocalization.id}`}
@@ -448,7 +551,7 @@ export function AsoLocalizationManager() {
                               }}
                             />
                           </div>
-                        </div>
+                        </EditorFieldCard>
                       </div>
                     </div>
                   </div>
@@ -460,58 +563,45 @@ export function AsoLocalizationManager() {
                     const fieldError = getFieldError(field, value);
 
                     return (
-                      <div
+                      <EditorFieldCard
                         key={field}
-                        className="rounded-xl border border-border bg-background"
+                        title={FIELD_LABELS[field]}
+                        description={fieldDescriptions[field]}
                       >
-                        <div className="space-y-3 p-4 sm:p-5">
-                          <div className="space-y-1">
-                            <Label
-                              htmlFor={`${field}-${selectedLocalization.id}`}
-                              className="text-sm font-medium"
-                            >
-                              {FIELD_LABELS[field]}
-                            </Label>
-                            <p className="text-xs leading-5 text-muted-foreground">
-                              {fieldDescriptions[field]}
+                        <Textarea
+                          id={`${field}-${selectedLocalization.id}`}
+                          rows={12}
+                          placeholder={fieldPlaceholders[field]}
+                          aria-invalid={fieldError ? true : undefined}
+                          value={value}
+                          onChange={(event) =>
+                            updateField(
+                              selectedLocalization.id,
+                              field,
+                              event.target.value,
+                            )
+                          }
+                          className="min-h-[280px] resize-y rounded-md border-border bg-background shadow-none"
+                        />
+
+                        <div className="flex items-start justify-between gap-4">
+                          {fieldError ? (
+                            <p className="text-sm text-red-600">
+                              {fieldError}
                             </p>
-                          </div>
-
-                          <Textarea
-                            id={`${field}-${selectedLocalization.id}`}
-                            rows={12}
-                            placeholder={fieldPlaceholders[field]}
-                            aria-invalid={fieldError ? true : undefined}
-                            value={value}
-                            onChange={(event) =>
-                              updateField(
-                                selectedLocalization.id,
-                                field,
-                                event.target.value,
-                              )
-                            }
-                            className="min-h-[280px] resize-y rounded-md border-border bg-background shadow-none"
-                          />
-
-                          <div className="flex items-start justify-between gap-4">
-                            {fieldError ? (
-                              <p className="text-sm text-red-600">
-                                {fieldError}
-                              </p>
-                            ) : (
-                              <span />
+                          ) : (
+                            <span className="block min-h-5" />
+                          )}
+                          <div
+                            className={cn(
+                              "shrink-0 text-xs font-medium",
+                              fieldError ? "text-red-600" : "text-muted-foreground",
                             )}
-                            <div
-                              className={cn(
-                                "shrink-0 text-xs font-medium",
-                                fieldError ? "text-red-600" : "text-muted-foreground",
-                              )}
-                            >
-                              {formatCounter(field, value)}
-                            </div>
+                          >
+                            {formatCounter(field, value)}
                           </div>
                         </div>
-                      </div>
+                      </EditorFieldCard>
                     );
                   })}
                 </div>
@@ -521,8 +611,7 @@ export function AsoLocalizationManager() {
                 Select a localization from the left.
               </div>
             )}
-          </section>
-        </div>
+        </section>
       </div>
     </main>
   );

@@ -48,10 +48,10 @@ export function BrainstormTagInput({
 
   return (
     <div
-      className="flex-1 min-h-[220px] rounded-xl border border-border bg-background px-3 py-3 shadow-none transition-colors focus-within:border-foreground/30 lg:min-h-full"
+      className="flex h-full min-h-[220px] w-full min-w-0 flex-1 rounded-lg border border-border/80 bg-muted/20 px-3 py-3 transition-colors focus-within:border-foreground/30 min-[500px]:min-h-full"
       onClick={handleContainerClick}
     >
-      <div className="flex flex-wrap items-start gap-2">
+      <div className="flex h-full w-full flex-wrap content-start items-start gap-2 overflow-y-auto">
         {entries.map((entry, index) => {
           if (editingIndex === index) {
             return (
@@ -119,7 +119,7 @@ export function BrainstormTagInput({
           onBlur={commitDraft}
           onPaste={handleDraftPaste}
           placeholder={
-            entries.length === 0 ? "Type keyword score, then press Enter" : ""
+            entries.length === 0 ? "Type a keyword and score, then press Enter" : ""
           }
           className="min-w-[180px] flex-1 border-0 bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground"
         />
