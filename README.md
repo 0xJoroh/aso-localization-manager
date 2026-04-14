@@ -1,36 +1,114 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ASO Localization Manager
 
-## Getting Started
+<p align="center">
+  A focused workspace for writing, reviewing, and tracking App Store localization copy country by country.
+</p>
 
-First, run the development server:
+<p align="center">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?style=flat-square">
+  <img alt="React" src="https://img.shields.io/badge/React-19-149eca?style=flat-square">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6?style=flat-square">
+  <img alt="Local-first" src="https://img.shields.io/badge/Data-Local%20first-1f8f6a?style=flat-square">
+</p>
+
+## What this app is
+
+ASO Localization Manager is a small, practical tool for app teams working on App Store Optimization across multiple locales.
+
+Instead of juggling spreadsheets, notes, and copy docs, it gives you one place to:
+
+- write your `title`, `subtitle`, `keywords`, and `description`
+- move through Apple App Store localizations one by one
+- keep an eye on character limits
+- brainstorm keywords beside the copy you are writing
+- spot when the same keyword shows up too often across localized metadata
+
+It is designed to feel more like a writing workspace than an admin panel.
+
+## Why it exists
+
+Writing ASO copy across many markets gets messy fast. You need to stay within strict App Store limits, keep terminology consistent, and avoid repeating the same ideas everywhere.
+
+This app helps make that process calmer and more visible.
+
+## At a glance
+
+```text
+Brainstorm keywords
+        |
+        v
+Pick a localization
+        |
+        v
+Write title / subtitle / keywords / description
+        |
+        v
+Check limits, completion, and duplicate usage
+```
+
+## Features
+
+| Feature | What it does |
+| --- | --- |
+| Localization sidebar | Browse and search supported App Store localizations quickly |
+| Character limit feedback | Shows remaining characters for each metadata field |
+| Completion tracking | Marks localizations as complete when all fields are filled and valid |
+| Brainstorm keyword panel | Capture keyword ideas with optional scores in a lightweight tag-style input |
+| Duplicate keyword awareness | Highlights whether brainstormed keywords are unused, used once, or repeated |
+| Local persistence | Saves your work in the browser so you can continue where you left off |
+
+## Who it is for
+
+- ASO specialists
+- indie app founders
+- growth teams
+- marketers working with translators or localization partners
+- anyone preparing App Store metadata in multiple languages
+
+## How it works
+
+Each localization has its own writing space. You can switch between locales from the sidebar, fill in the required App Store fields, and keep a brainstorm list next to the metadata you are drafting.
+
+The app automatically validates field lengths and keeps progress visible as you go. It also compares brainstormed keywords against your title, subtitle, and keyword fields so repeated usage is easier to catch early.
+
+## Tech stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Zustand for local state and persistence
+- Zod for validation
+
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+If you prefer npm:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+## Current scope
 
-To learn more about Next.js, take a look at the following resources:
+This project is currently a local-first editing tool. It does not connect to App Store Connect, sync data to a backend, or manage team collaboration yet.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+That makes it fast, simple, and easy to run privately.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Screens you can expect
 
-## Deploy on Vercel
+- a searchable localization sidebar with completion states
+- an editor for App Store metadata fields
+- a brainstorm area for keyword ideas and scores
+- lightweight feedback for limits and repeated keyword usage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Add your preferred license before publishing publicly.
