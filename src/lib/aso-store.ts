@@ -50,6 +50,13 @@ type AsoLocalizationStore = PersistedAsoLocalizationState & {
   updateBrainstorm: (localizationId: string, value: string) => void;
 };
 
+export type ExportedAsoData = {
+  app: "aso-localization-manager";
+  exportedAt: string;
+  version: number;
+  state: PersistedAsoLocalizationState;
+};
+
 function createDefaultLocalizations() {
   return APPLE_APP_STORE_LOCALIZATIONS.map(createEmptyLocalizationRecord);
 }
@@ -148,10 +155,92 @@ function resolveLegacySelectedLocalizationId(
   return matchedLocalization?.id ?? localizations[0]?.id ?? "";
 }
 
+function normalizePersistedState(
+  state?: Partial<PersistedAsoLocalizationState>
+): PersistedAsoLocalizationState {
+  const localizations = mergePersistedLocalizations(state?.localizations);
+
+  return {
+    localizations,
+    selectedLocalizationId: resolveSelectedLocalizationId(
+      state?.selectedLocalizationId,
+      localizations
+    ),
+    sidebarCollapsed:
+      typeof state?.sidebarCollapsed === "boolean"
+        ? state.sidebarCollapsed
+        : defaultSidebarCollapsed,
+    storageNoticeDismissed:
+      typeof state?.storageNoticeDismissed === "boolean"
+        ? state.storageNoticeDismissed
+        : defaultStorageNoticeDismissed,
+  };
+}
+
 const defaultLocalizations = createDefaultLocalizations();
 const defaultSelectedLocalizationId = defaultLocalizations[0]?.id ?? "";
 const defaultSidebarCollapsed = false;
 const defaultStorageNoticeDismissed = false;
+const STORAGE_KEY = "aso-localization-manager-storage";
+const STORAGE_VERSION = 4;
+
+export function createAsoDataExport(): ExportedAsoData {
+  const state = useAsoStore.getState();
+
+  return {
+    app: "aso-localization-manager",
+    exportedAt: new Date().toISOString(),
+    version: STORAGE_VERSION,
+    state: normalizePersistedState({
+      localizations: state.localizations,
+      selectedLocalizationId: state.selectedLocalizationId,
+      sidebarCollapsed: state.sidebarCollapsed,
+      storageNoticeDismissed: state.storageNoticeDismissed,
+    }),
+  };
+}
+
+export function parseImportedAsoData(raw: string): PersistedAsoLocalizationState {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("This file is not valid JSON.");
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("This file does not contain ASO localization data.");
+  }
+
+  const exportedData = parsed as Partial<ExportedAsoData>;
+
+  if (exportedData.app !== "aso-localization-manager") {
+    throw new Error("This file was not exported from ASO Localization Manager.");
+  }
+
+  if (!exportedData.state || typeof exportedData.state !== "object") {
+    throw new Error("This export is missing the saved workspace data.");
+  }
+
+  return normalizePersistedState(
+    exportedData.state as Partial<PersistedAsoLocalizationState>
+  );
+}
+
+export function importAsoData(state: PersistedAsoLocalizationState) {
+  const normalizedState = normalizePersistedState(state);
+
+  useAsoStore.setState(normalizedState);
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      state: normalizedState,
+      version: STORAGE_VERSION,
+    })
+  );
+}
 
 export const useAsoStore = create<AsoLocalizationStore>()(
   persist(
@@ -205,8 +294,8 @@ export const useAsoStore = create<AsoLocalizationStore>()(
       },
     }),
     {
-      name: "aso-localization-manager-storage",
-      version: 4,
+      name: STORAGE_KEY,
+      version: STORAGE_VERSION,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState, version) => {
         const state = (persistedState ?? {}) as Partial<
@@ -252,27 +341,11 @@ export const useAsoStore = create<AsoLocalizationStore>()(
         return state as Partial<PersistedAsoLocalizationState>;
       },
       merge: (persistedState, currentState) => {
-        const state = (persistedState ?? {}) as Partial<
-          PersistedAsoLocalizationState
-        >;
-        const localizations = mergePersistedLocalizations(state.localizations);
-
         return {
           ...currentState,
-          ...state,
-          localizations,
-          selectedLocalizationId: resolveSelectedLocalizationId(
-            state.selectedLocalizationId,
-            localizations
+          ...normalizePersistedState(
+            (persistedState ?? {}) as Partial<PersistedAsoLocalizationState>
           ),
-          sidebarCollapsed:
-            typeof state.sidebarCollapsed === "boolean"
-              ? state.sidebarCollapsed
-              : currentState.sidebarCollapsed,
-          storageNoticeDismissed:
-            typeof state.storageNoticeDismissed === "boolean"
-              ? state.storageNoticeDismissed
-              : currentState.storageNoticeDismissed,
         };
       },
     }
