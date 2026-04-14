@@ -372,6 +372,12 @@ export function AsoLocalizationManager() {
   const toggleSidebarCollapsed = useAsoStore(
     (state) => state.toggleSidebarCollapsed,
   );
+  const storageNoticeDismissed = useAsoStore(
+    (state) => state.storageNoticeDismissed,
+  );
+  const dismissStorageNotice = useAsoStore(
+    (state) => state.dismissStorageNotice,
+  );
   const updateField = useAsoStore((state) => state.updateField);
   const updateBrainstorm = useAsoStore((state) => state.updateBrainstorm);
 
@@ -623,6 +629,29 @@ export function AsoLocalizationManager() {
           <section className="min-h-0 py-6 lg:overflow-y-auto lg:pl-8">
             {selectedLocalization ? (
               <div className="space-y-6 pr-1 lg:pr-6">
+                {!storageNoticeDismissed ? (
+                  <div className="flex items-start gap-3 rounded-2xl border border-amber-400/35 bg-amber-500/12 px-4 py-3 text-sm text-amber-50">
+                    <div className="mt-0.5 rounded-full bg-amber-400/15 p-1.5 text-amber-300">
+                      <AlertTriangle className="size-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">Your data stays in this browser.</p>
+                      <p className="mt-1 text-amber-100/80">
+                        You can refresh anytime, but your entries will not follow
+                        you to another browser or device.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={dismissStorageNotice}
+                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-amber-100/75 transition-colors hover:bg-amber-50/10 hover:text-amber-50"
+                      aria-label="Dismiss storage notice"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                ) : null}
+
                 <div className="flex items-center gap-3">
                   <span className="text-xl">
                     {getLocalizationFlag(selectedLocalization.name)}

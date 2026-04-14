@@ -21,6 +21,7 @@ type PersistedAsoLocalizationState = {
   localizations: AppLocalization[];
   selectedLocalizationId: string;
   sidebarCollapsed: boolean;
+  storageNoticeDismissed: boolean;
 };
 
 type LegacyCountry = {
@@ -40,6 +41,7 @@ type AsoLocalizationStore = PersistedAsoLocalizationState & {
   selectLocalization: (localizationId: string) => void;
   setSidebarCollapsed: (sidebarCollapsed: boolean) => void;
   toggleSidebarCollapsed: () => void;
+  dismissStorageNotice: () => void;
   updateField: (
     localizationId: string,
     field: AsoFieldKey,
@@ -149,6 +151,7 @@ function resolveLegacySelectedLocalizationId(
 const defaultLocalizations = createDefaultLocalizations();
 const defaultSelectedLocalizationId = defaultLocalizations[0]?.id ?? "";
 const defaultSidebarCollapsed = false;
+const defaultStorageNoticeDismissed = false;
 
 export const useAsoStore = create<AsoLocalizationStore>()(
   persist(
@@ -156,6 +159,7 @@ export const useAsoStore = create<AsoLocalizationStore>()(
       localizations: defaultLocalizations,
       selectedLocalizationId: defaultSelectedLocalizationId,
       sidebarCollapsed: defaultSidebarCollapsed,
+      storageNoticeDismissed: defaultStorageNoticeDismissed,
       selectLocalization: (selectedLocalizationId) => {
         set({ selectedLocalizationId });
       },
@@ -164,6 +168,9 @@ export const useAsoStore = create<AsoLocalizationStore>()(
       },
       toggleSidebarCollapsed: () => {
         set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }));
+      },
+      dismissStorageNotice: () => {
+        set({ storageNoticeDismissed: true });
       },
       updateField: (localizationId, field, value) => {
         set((state) => ({
@@ -199,7 +206,7 @@ export const useAsoStore = create<AsoLocalizationStore>()(
     }),
     {
       name: "aso-localization-manager-storage",
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState, version) => {
         const state = (persistedState ?? {}) as Partial<
@@ -217,6 +224,7 @@ export const useAsoStore = create<AsoLocalizationStore>()(
               localizations
             ),
             sidebarCollapsed: defaultSidebarCollapsed,
+            storageNoticeDismissed: defaultStorageNoticeDismissed,
           } satisfies Partial<PersistedAsoLocalizationState>;
         }
 
@@ -227,6 +235,17 @@ export const useAsoStore = create<AsoLocalizationStore>()(
               typeof state.sidebarCollapsed === "boolean"
                 ? state.sidebarCollapsed
                 : defaultSidebarCollapsed,
+            storageNoticeDismissed: defaultStorageNoticeDismissed,
+          } satisfies Partial<PersistedAsoLocalizationState>;
+        }
+
+        if (version < 4) {
+          return {
+            ...state,
+            storageNoticeDismissed:
+              typeof state.storageNoticeDismissed === "boolean"
+                ? state.storageNoticeDismissed
+                : defaultStorageNoticeDismissed,
           } satisfies Partial<PersistedAsoLocalizationState>;
         }
 
@@ -250,6 +269,10 @@ export const useAsoStore = create<AsoLocalizationStore>()(
             typeof state.sidebarCollapsed === "boolean"
               ? state.sidebarCollapsed
               : currentState.sidebarCollapsed,
+          storageNoticeDismissed:
+            typeof state.storageNoticeDismissed === "boolean"
+              ? state.storageNoticeDismissed
+              : currentState.storageNoticeDismissed,
         };
       },
     }
