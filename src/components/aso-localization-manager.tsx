@@ -1,7 +1,15 @@
 "use client";
 
 import { useDeferredValue, useEffect, useRef, useState } from "react";
-import { Check, PanelLeftClose, PanelLeftOpen, Search, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Check,
+  Clock3,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Search,
+  X,
+} from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +18,7 @@ import {
   EDITABLE_FIELDS,
   FIELD_LABELS,
   getFieldError,
+  getOverflowingFieldCount,
   getRemainingCharacters,
   getSearchableLocalizationText,
   isLocalizationComplete,
@@ -30,14 +39,15 @@ const TRACKED_FIELDS = [
 const fieldDescriptions: Record<AsoFieldKey, string> = {
   title: "Primary 30-character App Store title.",
   subtitle: "Secondary 30-character supporting line.",
-  keywords: "Comma-separated App Store keywords.",
+  keywords:
+    "Use comma-separated keywords with no spaces around commas and no special characters.",
   description: "Long-form App Store description with a 4000-character limit.",
 };
 
 const fieldPlaceholders: Record<AsoFieldKey, string> = {
   title: "Photo editor for creators",
   subtitle: "Fast AI retouching",
-  keywords: "photo editor, ai photo, collage",
+  keywords: "photo editor,ai photo,collage",
   description:
     "Describe your app value, features, trust signals, and main reasons to install.",
 };
@@ -435,6 +445,11 @@ export function AsoLocalizationManager() {
     getSearchableLocalizationText(localization.fields),
   );
 
+  function handleSelectLocalization(localizationId: string) {
+    selectLocalization(localizationId);
+    setSearchQuery("");
+  }
+
   if (!isHydrated) {
     return (
       <main className="min-h-screen bg-background">
@@ -448,18 +463,18 @@ export function AsoLocalizationManager() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-[1500px] ">
+    <main className="min-h-screen bg-background text-foreground lg:h-screen lg:overflow-hidden">
+      <div className="mx-auto max-w-[1500px] lg:h-full">
         <div
           className={cn(
-            "grid min-h-screen transition-[grid-template-columns] duration-200 ease-out",
+            "grid min-h-screen transition-[grid-template-columns] duration-200 ease-out lg:h-full lg:min-h-0",
             sidebarCollapsed
               ? "lg:grid-cols-[72px_minmax(0,1fr)]"
               : "lg:grid-cols-[286px_minmax(0,1fr)]",
           )}
         >
-          <aside className="border-border/80 lg:border-r">
-            <div className="flex h-full min-h-screen flex-col py-4">
+          <aside className="border-border/80 lg:sticky lg:top-0 lg:h-screen lg:border-r">
+            <div className="flex h-full min-h-screen flex-col py-4 lg:min-h-0 lg:h-screen">
               <div
                 className={cn(
                   "flex items-center gap-2",
@@ -475,8 +490,18 @@ export function AsoLocalizationManager() {
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
                       placeholder="Search localizations"
-                      className="h-9 rounded-md border-border bg-background pl-9 shadow-none"
+                      className="h-9 rounded-md border-border bg-background pr-9 pl-9 shadow-none"
                     />
+                    {searchQuery ? (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute top-1/2 right-2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                        aria-label="Clear search"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -499,7 +524,7 @@ export function AsoLocalizationManager() {
               <div className="mt-4 min-h-0 flex-1 overflow-hidden">
                 <div
                   className={cn(
-                    "h-[calc(100vh-6.5rem)] overflow-x-hidden overflow-y-auto",
+                    "h-full overflow-x-hidden overflow-y-auto",
                     sidebarCollapsed ? "px-2" : "pl-4 pr-1",
                   )}
                 >
@@ -520,13 +545,17 @@ export function AsoLocalizationManager() {
                       const isComplete = isLocalizationComplete(
                         localization.fields,
                       );
+                      const isTouched = isLocalizationTouched(localization);
+                      const hasErrors =
+                        getOverflowingFieldCount(localization.fields) > 0;
+                      const isIncomplete = isTouched && !isComplete && !hasErrors;
                       const flag = getLocalizationFlag(localization.name);
 
                       return (
                         <button
                           key={localization.id}
                           type="button"
-                          onClick={() => selectLocalization(localization.id)}
+                          onClick={() => handleSelectLocalization(localization.id)}
                           className={cn(
                             "relative flex w-full items-center rounded-md text-left text-sm transition-colors",
                             sidebarCollapsed
@@ -561,9 +590,25 @@ export function AsoLocalizationManager() {
                           {!sidebarCollapsed && isComplete ? (
                             <Check className="ml-3 size-4 shrink-0 text-emerald-500" />
                           ) : null}
+                          {!sidebarCollapsed && hasErrors ? (
+                            <AlertTriangle className="ml-3 size-4 shrink-0 text-red-500" />
+                          ) : null}
+                          {!sidebarCollapsed && isIncomplete ? (
+                            <Clock3 className="ml-3 size-4 shrink-0 text-amber-500" />
+                          ) : null}
                           {sidebarCollapsed && isComplete ? (
                             <span className="absolute top-1 right-1 rounded-full bg-emerald-500/15 p-0.5 text-emerald-400">
                               <Check className="size-3" />
+                            </span>
+                          ) : null}
+                          {sidebarCollapsed && hasErrors ? (
+                            <span className="absolute top-1 right-1 rounded-full bg-red-500/15 p-0.5 text-red-500">
+                              <AlertTriangle className="size-3" />
+                            </span>
+                          ) : null}
+                          {sidebarCollapsed && isIncomplete ? (
+                            <span className="absolute top-1 right-1 rounded-full bg-amber-500/15 p-0.5 text-amber-500">
+                              <Clock3 className="size-3" />
                             </span>
                           ) : null}
                         </button>
@@ -575,9 +620,9 @@ export function AsoLocalizationManager() {
             </div>
           </aside>
 
-          <section className="py-6 lg:pl-8">
+          <section className="min-h-0 py-6 lg:overflow-y-auto lg:pl-8">
             {selectedLocalization ? (
-              <div className="space-y-6">
+              <div className="space-y-6 pr-1 lg:pr-6">
                 <div className="flex items-center gap-3">
                   <span className="text-xl">
                     {getLocalizationFlag(selectedLocalization.name)}
@@ -589,6 +634,17 @@ export function AsoLocalizationManager() {
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
                       <Check className="size-3.5" />
                       Complete
+                    </span>
+                  ) : getOverflowingFieldCount(selectedLocalization.fields) >
+                    0 ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
+                      <AlertTriangle className="size-3.5" />
+                      Has errors
+                    </span>
+                  ) : isLocalizationTouched(selectedLocalization) ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                      <Clock3 className="size-3.5" />
+                      In progress
                     </span>
                   ) : null}
                 </div>

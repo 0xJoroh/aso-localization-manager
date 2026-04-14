@@ -121,6 +121,13 @@ export function countCharacters(value: string) {
   return Array.from(value).length;
 }
 
+const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001F\u007F]/;
+const LINE_BREAK_PATTERN = /[\r\n]/;
+const TAB_PATTERN = /\t/;
+const KEYWORD_SEPARATOR_SPACE_PATTERN = /\s,|,\s/;
+const KEYWORD_DISALLOWED_SPECIAL_CHARACTER_PATTERN =
+  /[#!@$%^*+=\\|`~<>[\]{}:;"'/?]/;
+
 function createCharacterSchema(fieldLabel: string, limit: number) {
   return z.string().superRefine((value, context) => {
     if (countCharacters(value) > limit) {
@@ -132,10 +139,79 @@ function createCharacterSchema(fieldLabel: string, limit: number) {
   });
 }
 
+function createPlainTextMetadataSchema(fieldLabel: string, limit: number) {
+  return createCharacterSchema(fieldLabel, limit).superRefine(
+    (value, context) => {
+      if (LINE_BREAK_PATTERN.test(value)) {
+        context.addIssue({
+          code: "custom",
+          message: `${fieldLabel} must stay on a single line.`,
+        });
+      }
+
+      if (TAB_PATTERN.test(value)) {
+        context.addIssue({
+          code: "custom",
+          message: `${fieldLabel} cannot contain tab characters.`,
+        });
+      }
+
+      if (CONTROL_CHARACTER_PATTERN.test(value)) {
+        context.addIssue({
+          code: "custom",
+          message: `${fieldLabel} contains unsupported control characters.`,
+        });
+      }
+    },
+  );
+}
+
+function createKeywordSchema() {
+  return createPlainTextMetadataSchema("Keywords", FIELD_LIMITS.keywords)
+    .superRefine((value, context) => {
+      const trimmedValue = value.trim();
+
+      if (!trimmedValue) {
+        return;
+      }
+
+      if (KEYWORD_SEPARATOR_SPACE_PATTERN.test(value)) {
+        context.addIssue({
+          code: "custom",
+          message:
+            "Keywords must be comma-separated with no spaces around commas.",
+        });
+      }
+
+      const entries = value.split(",");
+
+      for (const entry of entries) {
+        const trimmedEntry = entry.trim();
+
+        if (!trimmedEntry) {
+          context.addIssue({
+            code: "custom",
+            message: "Keywords cannot contain empty comma-separated entries.",
+          });
+          return;
+        }
+
+        if (KEYWORD_DISALLOWED_SPECIAL_CHARACTER_PATTERN.test(trimmedEntry)) {
+          context.addIssue({
+            code: "custom",
+            message:
+              "Keywords should only use letters, numbers, spaces, hyphens, commas, and ampersands.",
+          });
+          return;
+        }
+      }
+    });
+}
+
 export const localizationSchema = z.object({
-  title: createCharacterSchema("Title", FIELD_LIMITS.title),
-  subtitle: createCharacterSchema("Subtitle", FIELD_LIMITS.subtitle),
-  keywords: createCharacterSchema("Keywords", FIELD_LIMITS.keywords),
+  title: createPlainTextMetadataSchema("Title", FIELD_LIMITS.title),
+  subtitle: createPlainTextMetadataSchema("Subtitle", FIELD_LIMITS.subtitle),
+  keywords: createKeywordSchema(),
   description: createCharacterSchema("Description", FIELD_LIMITS.description),
 });
 
@@ -143,9 +219,9 @@ const fieldSchemas: Record<
   AsoFieldKey,
   ReturnType<typeof createCharacterSchema>
 > = {
-  title: createCharacterSchema("Title", FIELD_LIMITS.title),
-  subtitle: createCharacterSchema("Subtitle", FIELD_LIMITS.subtitle),
-  keywords: createCharacterSchema("Keywords", FIELD_LIMITS.keywords),
+  title: createPlainTextMetadataSchema("Title", FIELD_LIMITS.title),
+  subtitle: createPlainTextMetadataSchema("Subtitle", FIELD_LIMITS.subtitle),
+  keywords: createKeywordSchema(),
   description: createCharacterSchema("Description", FIELD_LIMITS.description),
 };
 
